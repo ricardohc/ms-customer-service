@@ -1,0 +1,55 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: ms-customer-service
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/banking_customer}
+      auto-index-creation: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Cambia este issuer-uri por el de tu proveedor de identidad real
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:9000}
+
+# Eureka deshabilitado mientras no haya servidor corriendo.
+# Cuando levantes tu Eureka Server (Parte II), cambia enabled a true
+# y descomenta service-url con la URL correcta.
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+    # service-url:
+    #   defaultZone: http://localhost:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+logging:
+  level:
+    com.banking.customer: DEBUG
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG

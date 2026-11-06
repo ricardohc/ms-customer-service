@@ -1,0 +1,204 @@
+openapi: 3.0.3
+info:
+  title: Customer Service API
+  description: Gestión de clientes del banco (Personales y Empresariales).
+  version: 1.0.0
+
+# (Opcional pero recomendado) Declaración de tags a nivel raíz
+tags:
+  - name: Customer
+    description: Operaciones de gestión de clientes
+
+security:
+  - BearerAuth: []
+paths:
+  /api/v1/customers:
+    get:
+      tags:
+        - Customer          # <-- AGREGADO
+      summary: Listar clientes
+      operationId: findAllCustomers
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/CorrelationIdHeader'
+        - $ref: '#/components/parameters/ChannelIdHeader'
+      responses:
+        '200':
+          description: Lista paginada de clientes
+          content: { application/json: { schema: { $ref: '#/components/schemas/CustomerPage' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+    post:
+      tags:
+        - Customer          # <-- AGREGADO
+      summary: Registrar nuevo cliente
+      description: Idempotente mediante X-Transaction-ID. Valida unicidad de documento.
+      operationId: createCustomer
+      parameters:
+        - $ref: '#/components/parameters/CorrelationIdHeader'
+        - $ref: '#/components/parameters/ChannelIdHeader'
+        - $ref: '#/components/parameters/TransactionIdHeader'
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CustomerCreateRequest' } } }
+      responses:
+        '201':
+          description: Cliente creado
+          content: { application/json: { schema: { $ref: '#/components/schemas/CustomerResponse' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '422': { $ref: '#/components/responses/UnprocessableEntity' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+
+  /api/v1/customers/{customerId}:
+    get:
+      tags:
+        - Customer          # <-- AGREGADO
+      summary: Obtener cliente por ID
+      operationId: findCustomerById
+      parameters:
+        - $ref: '#/components/parameters/CustomerIdPath'
+        - $ref: '#/components/parameters/CorrelationIdHeader'
+        - $ref: '#/components/parameters/ChannelIdHeader'
+      responses:
+        '200':
+          description: Detalle del cliente
+          content: { application/json: { schema: { $ref: '#/components/schemas/CustomerResponse' } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+    patch:
+      tags:
+        - Customer          # <-- AGREGADO
+      summary: Actualizar cliente (parcial)
+      description: Permite actualizar datos de contacto y perfil (VIP/PYME). No permite cambiar el tipo de cliente ni el documento.
+      operationId: updateCustomer
+      parameters:
+        - $ref: '#/components/parameters/CustomerIdPath'
+        - $ref: '#/components/parameters/CorrelationIdHeader'
+        - $ref: '#/components/parameters/ChannelIdHeader'
+        - $ref: '#/components/parameters/TransactionIdHeader'
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CustomerUpdateRequest' } } }
+      responses:
+        '200':
+          description: Cliente actualizado
+          content: { application/json: { schema: { $ref: '#/components/schemas/CustomerResponse' } } }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+    delete:
+      tags:
+        - Customer          # <-- AGREGADO
+      summary: Baja lógica de cliente
+      description: Desactiva al cliente. No se puede reactivar si tiene productos activos.
+      operationId: deactivateCustomer
+      parameters:
+        - $ref: '#/components/parameters/CustomerIdPath'
+        - $ref: '#/components/parameters/CorrelationIdHeader'
+        - $ref: '#/components/parameters/ChannelIdHeader'
+        - $ref: '#/components/parameters/TransactionIdHeader'
+      responses:
+        '204': { description: Cliente desactivado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/InternalServerError' }
+
+components:
+  securitySchemes:
+    BearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  parameters:
+    PageParam: { name: page, in: query, schema: { type: integer, default: 0, minimum: 0 } }
+    SizeParam: { name: size, in: query, schema: { type: integer, default: 20, minimum: 1, maximum: 100 } }
+    CorrelationIdHeader: { name: X-Correlation-ID, in: header, required: true, schema: { type: string } }
+    ChannelIdHeader: { name: X-Channel-ID, in: header, required: true, schema: { type: string } }
+    TransactionIdHeader: { name: X-Transaction-ID, in: header, required: true, schema: { type: string, format: uuid } }
+    CustomerIdPath: { name: customerId, in: path, required: true, schema: { type: string, format: uuid } }
+  schemas:
+    CustomerType: { type: string, enum: [PERSONAL, BUSINESS] }
+    CustomerProfile: { type: string, enum: [STANDARD, VIP, PYME] }
+    CustomerStatus: { type: string, enum: [ACTIVE, INACTIVE] }
+    DocumentType: { type: string, enum: [DNI, CEX, PASSPORT, RUC] }
+    CustomerCreateRequest:
+      type: object
+      required: [customerType, documentType, documentNumber, firstName, lastName, email]
+      properties:
+        customerType: { $ref: '#/components/schemas/CustomerType' }
+        documentType: { $ref: '#/components/schemas/DocumentType' }
+        documentNumber: { type: string, minLength: 5, maxLength: 20 }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        phoneNumber: { type: string }
+        profile: { $ref: '#/components/schemas/CustomerProfile' }
+    CustomerUpdateRequest:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string, format: email }
+        phoneNumber: { type: string }
+        profile: { $ref: '#/components/schemas/CustomerProfile' }
+        status: { $ref: '#/components/schemas/CustomerStatus' }
+    CustomerResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        customerType: { $ref: '#/components/schemas/CustomerType' }
+        documentType: { $ref: '#/components/schemas/DocumentType' }
+        documentNumber: { type: string, description: "Enmascarado en listados" }
+        firstName: { type: string }
+        lastName: { type: string }
+        email: { type: string }
+        phoneNumber: { type: string }
+        profile: { $ref: '#/components/schemas/CustomerProfile' }
+        status: { $ref: '#/components/schemas/CustomerStatus' }
+        createdAt: { type: string, format: date-time }
+    CustomerPage:
+      type: object
+      properties:
+        content: { type: array, items: { $ref: '#/components/schemas/CustomerResponse' } }
+        page: { type: integer }
+        size: { type: integer }
+        totalElements: { type: integer }
+    ErrorResponse:
+      type: object
+      properties:
+        code: { type: string }
+        message: { type: string }
+        timestamp: { type: string, format: date-time }
+        correlationId: { type: string }
+        details: { type: array, items: { type: string } }
+  responses:
+    BadRequest:
+      description: Solicitud inválida
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Unauthorized:
+      description: No autenticado
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Forbidden:
+      description: No autorizado
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    NotFound:
+      description: No encontrado
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    Conflict:
+      description: Conflicto (ej. documento duplicado, cliente con productos activos)
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    UnprocessableEntity:
+      description: Entidad no procesable
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
+    InternalServerError:
+      description: Error interno
+      content: { application/json: { schema: { $ref: '#/components/schemas/ErrorResponse' } } }
