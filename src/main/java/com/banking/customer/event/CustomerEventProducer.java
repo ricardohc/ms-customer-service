@@ -3,14 +3,23 @@ package com.banking.customer.event;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
+
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Productor de eventos de dominio hacia el tópico banking.customer.events.v1.
- * Clave del mensaje: customerId (para orden por cliente). Envío asíncrono sin
- * bloquear el camino reactivo.
+ *
+ * Clave del mensaje: customerId (garantiza orden por cliente).
+ *
+ * Notas:
+ * - kafkaTemplate.send() es no bloqueante por naturaleza: devuelve un CompletableFuture.
+ *   NO se debe envolver en Mono.fromRunnable(...).subscribe() porque el Runnable
+ *   termina inmediatamente sin esperar el futuro, y los errores se pierden.
+ * - Si el broker no está disponible o el tópico no existe (con auto.create deshabilitado),
+ *   el error se registra aquí vía whenComplete.
  */
 @Slf4j
 @Component
@@ -33,17 +42,20 @@ public class CustomerEventProducer {
         publish(CustomerEvent.of(CustomerEvent.Type.CustomerDeactivated, document, correlationId), document.getId());
     }
 
-    private void publish(CustomerEvent event, java.util.UUID key) {
-        // Kafka send() puede bloquear esperando metadata; lo aislamos del camino reactivo.
-        Mono.fromRunnable(() -> kafkaTemplate.send(TOPIC, key.toString(), event)
-                        .whenComplete((result, ex) -> {
-                            if (ex != null) {
-                                log.error("Failed to publish event {} for customer {}", event.getEventType(), key, ex);
-                            } else {
-                                log.debug("Event {} published for customer {}", event.getEventType(), key);
-                            }
-                        }))
-                .subscribeOn(Schedulers.boundedElastic())
-                .subscribe();
+    private void publish(CustomerEvent event, UUID key) {
+        CompletableFuture<SendResult<String, CustomerEvent>> future =
+                kafkaTemplate.send(TOPIC, key.toString(), event);
+
+        future.whenComplete((result, ex) -> {
+            if (ex != null) {
+                log.error("Failed to publish event {} for customer {} to topic {}: {}",
+                        event.getEventType(), key, TOPIC, ex.getMessage(), ex);
+            } else if (log.isDebugEnabled()) {
+                log.debug("Event {} published for customer {} to topic {} partition {} offset {}",
+                        event.getEventType(), key, TOPIC,
+                        result.getRecordMetadata().partition(),
+                        result.getRecordMetadata().offset());
+            }
+        });
     }
 }
