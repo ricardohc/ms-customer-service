@@ -1,6 +1,8 @@
 package com.banking.customer.exception;
 
 import com.banking.customer.dto.ErrorResponse;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,6 +12,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.time.OffsetDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -34,6 +37,25 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<ErrorResponse>> handleConflict(CustomerConflictException ex,
                                                               ServerWebExchange exchange) {
         return build(HttpStatus.CONFLICT, CONFLICT_CODE, ex.getMessage(), exchange);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public Mono<ResponseEntity<ErrorResponse>> handleUnreadable(HttpMessageNotReadableException ex,
+                                                                ServerWebExchange exchange) {
+        String message = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage();
+        if (ex.getMostSpecificCause() instanceof InvalidFormatException ife
+                && ife.getTargetType() != null && ife.getTargetType().isEnum()) {
+            Object[] values = ife.getTargetType().getEnumConstants();
+            message = "Unsupported value '" + ife.getValue() + "' for field '" + ife.getPathReference()
+                    + "'. Supported values: " + Arrays.toString(values);
+        }
+        return build(HttpStatus.BAD_REQUEST, "BAD_REQUEST", message, exchange);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public Mono<ResponseEntity<ErrorResponse>> handleIllegalArgument(IllegalArgumentException ex,
+                                                                     ServerWebExchange exchange) {
+        return build(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage(), exchange);
     }
 
     @ExceptionHandler(Exception.class)

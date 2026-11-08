@@ -1,24 +1,21 @@
 package com.banking.customer.repository;
 
 import com.banking.customer.document.CustomerDocument;
+import io.reactivex.rxjava3.core.Flowable;
+import io.reactivex.rxjava3.core.Maybe;
+import io.reactivex.rxjava3.core.Single;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.repository.reactive.ReactiveCrudRepository;
+import org.springframework.data.repository.reactive.RxJava3CrudRepository;
 import org.springframework.stereotype.Repository;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-/**
- * Acceso reactivo a la colección <code>customers</code> (base <code>banking_customer</code>).
- * Solo métodos derivados de Spring Data; sin @Query ni SQL dinámico.
- */
 @Repository
-public interface CustomerRepository extends ReactiveCrudRepository<CustomerDocument, UUID> {
+public interface CustomerRepository extends RxJava3CrudRepository<CustomerDocument, UUID> {
 
-    Mono<CustomerDocument> findByDocumentTypeAndDocumentNumber(String documentType, String documentNumber);
+    Maybe<CustomerDocument> findByDocumentTypeAndDocumentNumber(String documentType, String documentNumber);
 
-    Flux<CustomerDocument> findAllBy(Pageable pageable);
+    Flowable<CustomerDocument> findAllBy(Pageable pageable);
 
-    Mono<Long> countBy();
+    Single<Long> countBy();
 }

@@ -1,6 +1,7 @@
 package com.banking.customer.controller;
 
 import com.banking.customer.dto.CustomerCreateRequest;
+import com.banking.customer.dto.CustomerProfile;
 import com.banking.customer.dto.CustomerResponse;
 import com.banking.customer.dto.CustomerType;
 import com.banking.customer.dto.DocumentType;
@@ -36,6 +37,7 @@ class CustomerApiIntegrationTest {
         CustomerCreateRequest request = new CustomerCreateRequest();
         request.setCustomerType(CustomerType.BUSINESS);
         request.setDocumentType(DocumentType.RUC);
+        request.setProfile(CustomerProfile.PYME);
         request.setDocumentNumber("20" + UUID.randomUUID().toString().substring(0, 9));
         request.setFirstName("Acme");
         request.setLastName("Corp");
