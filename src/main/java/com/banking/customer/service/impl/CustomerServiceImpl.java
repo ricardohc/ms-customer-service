@@ -166,7 +166,13 @@ public class CustomerServiceImpl implements CustomerService {
 
     @Override
     public Single<CustomerResponse> update(UUID customerId, CustomerUpdateRequest request, String correlationId) {
-        // CustomerUpdateRequest no incluye documentType, por lo que no se valida aquí.
+        // -------------------------------------------------------------
+        // Validación de negocio adicional: el customerType no se puede
+        // cambiar en un PATCH. Si llega en el body -> 409 Conflict.
+        // -------------------------------------------------------------
+        if (request.getCustomerType() != null) {
+            return Single.error(new CustomerConflictException("Changing customerType is not allowed."));
+        }
         return repository.findById(customerId)
                 .switchIfEmpty(Single.error(new CustomerNotFoundException(customerId)))
                 .flatMap(document -> {

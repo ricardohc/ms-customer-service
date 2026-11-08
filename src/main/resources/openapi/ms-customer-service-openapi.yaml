@@ -145,6 +145,7 @@ components:
     CustomerUpdateRequest:
       type: object
       properties:
+        customerType: { $ref: '#/components/schemas/CustomerType' }
         firstName: { type: string }
         lastName: { type: string }
         email: { type: string, format: email }
