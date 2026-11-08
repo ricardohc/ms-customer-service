@@ -1,0 +1,233 @@
+{
+  "info": {
+    "_postman_id": "c1d2e3f4-a5b6-7890-cdef-123456789abc",
+    "name": "ms-customer-service",
+    "description": "Colección de pruebas para el microservicio de clientes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Customer",
+      "item": [
+        {
+          "name": "Create Customer - PERSONAL",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" },
+              { "key": "X-Transaction-ID", "value": "{{transactionId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerType\": \"PERSONAL\",\n  \"documentType\": \"DNI\",\n  \"documentNumber\": \"12345678\",\n  \"firstName\": \"Juan\",\n  \"lastName\": \"Perez\",\n  \"email\": \"juan.perez@example.com\",\n  \"phoneNumber\": \"987654321\",\n  \"profile\": \"STANDARD\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Create Customer - BUSINESS",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" },
+              { "key": "X-Transaction-ID", "value": "{{transactionId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerType\": \"BUSINESS\",\n  \"documentType\": \"RUC\",\n  \"documentNumber\": \"20123456789\",\n  \"firstName\": \"Empresa\",\n  \"lastName\": \"Demo SAC\",\n  \"email\": \"contacto@empresademo.com\",\n  \"phoneNumber\": \"014567890\",\n  \"profile\": \"PYME\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Create Customer - documento duplicado (409 esperado)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" },
+              { "key": "X-Transaction-ID", "value": "{{transactionId2}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerType\": \"PERSONAL\",\n  \"documentType\": \"DNI\",\n  \"documentNumber\": \"12345678\",\n  \"firstName\": \"Juan\",\n  \"lastName\": \"Perez\",\n  \"email\": \"juan.perez@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Create Customer - email inválido (400 esperado)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" },
+              { "key": "X-Transaction-ID", "value": "{{transactionId3}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerType\": \"PERSONAL\",\n  \"documentType\": \"DNI\",\n  \"documentNumber\": \"99999999\",\n  \"firstName\": \"Ana\",\n  \"lastName\": \"Lopez\",\n  \"email\": \"correo-invalido\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers"]
+            }
+          }
+        },
+        {
+          "name": "Find All Customers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Find Customer By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers", "{{customerId}}"]
+            }
+          }
+        },
+        {
+          "name": "Find Customer By ID - no existe (404 esperado)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/{{customerIdNotFound}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers", "{{customerIdNotFound}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Customer - PATCH parcial",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" },
+              { "key": "X-Transaction-ID", "value": "{{transactionId}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Juan Carlos\",\n  \"lastName\": \"Perez Gomez\",\n  \"email\": \"juancarlos.perez@example.com\",\n  \"phoneNumber\": \"999888777\",\n  \"profile\": \"VIP\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers", "{{customerId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Customer - intento cambiar customerType (ignorado por contrato)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" },
+              { "key": "X-Transaction-ID", "value": "{{transactionId2}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerType\": \"BUSINESS\",\n  \"firstName\": \"Juan\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers", "{{customerId}}"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Customer",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" },
+              { "key": "X-Transaction-ID", "value": "{{transactionId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/{{customerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers", "{{customerId}}"]
+            }
+          }
+        },
+        {
+          "name": "Deactivate Customer - con productos activos (409 esperado)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "X-Correlation-ID", "value": "{{correlationId}}" },
+              { "key": "X-Channel-ID", "value": "{{channelId}}" },
+              { "key": "X-Transaction-ID", "value": "{{transactionId2}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/customers/{{customerIdWithProducts}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "customers", "{{customerIdWithProducts}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8081" },
+    { "key": "correlationId", "value": "corr-123e4567-e89b-12d3-a456-426614174000" },
+    { "key": "channelId", "value": "WEB" },
+    { "key": "transactionId", "value": "123e4567-e89b-12d3-a456-426614174000" },
+    { "key": "transactionId2", "value": "123e4567-e89b-12d3-a456-426614174001" },
+    { "key": "transactionId3", "value": "123e4567-e89b-12d3-a456-426614174002" },
+    { "key": "customerId", "value": "11111111-1111-1111-1111-111111111111" },
+    { "key": "customerIdNotFound", "value": "99999999-9999-9999-9999-999999999999" },
+    { "key": "customerIdWithProducts", "value": "22222222-2222-2222-2222-222222222222" }
+  ]
+}
