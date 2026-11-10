@@ -7,11 +7,6 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 
-/**
- * Parte III: OAuth2 Resource Server con JWT.
- * Mientras no exista proveedor de identidad, el perfil dev usa permitAll()
- * (regla de docs/common-rules.md: nunca en producción).
- */
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {

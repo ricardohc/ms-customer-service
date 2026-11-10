@@ -15,10 +15,6 @@ import org.springframework.data.mongodb.core.mapping.Field;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Persistencia MongoDB (colección <code>customers</code> en base <code>banking_customer</code>).
- * Separada de los DTOs de contrato (paquete {@code com.banking.customer.dto}).
- */
 @Getter
 @Setter
 @Builder

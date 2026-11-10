@@ -15,10 +15,6 @@ import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Mapea las excepciones de dominio a los códigos HTTP del contrato
- * (ErrorResponse: code, message, timestamp, correlationId, details).
- */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {

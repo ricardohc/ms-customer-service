@@ -7,7 +7,7 @@ spring:
 
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/banking_yanki}
+      uri: ${MONGODB_URI:mongodb://localhost:27017/banking_customer}
       auto-index-creation: true
 
   kafka:
@@ -20,25 +20,18 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          # Cambia este issuer-uri por el de tu proveedor de identidad real
           issuer-uri: ${JWT_ISSUER_URI:http://localhost:9000}
-    # permitAll() temporal solo mientras se desarrolla (docs/common-rules.md)
     dev-mode: ${SECURITY_DEV_MODE:true}
 
 customer:
   events:
     topic: banking.customer.events.v1
 
-# Eureka deshabilitado mientras no haya servidor corriendo.
-# Cuando levantes tu Eureka Server (Parte II), cambia enabled a true
-# y descomenta service-url con la URL correcta.
 eureka:
   client:
     enabled: false
     register-with-eureka: false
     fetch-registry: false
-    # service-url:
-    #   defaultZone: http://localhost:8761/eureka/
 
 management:
   endpoints:

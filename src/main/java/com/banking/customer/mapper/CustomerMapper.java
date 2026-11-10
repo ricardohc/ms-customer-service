@@ -8,10 +8,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-/**
- * Mapper entre DTOs de contrato y documentos MongoDB.
- * Solo guardo la estructura; sin MapStruct para no agregar dependencias.
- */
 @Component
 public class CustomerMapper {
 
